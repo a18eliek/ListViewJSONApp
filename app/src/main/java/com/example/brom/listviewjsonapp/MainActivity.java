@@ -32,6 +32,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         new FetchData().execute(); //Starta utplock av json-data
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_refresh) {
+            Log.e("brom","Refreshing data...");
+            list.clear(); //Ta bort all gamal data
+            new FetchData().execute(); //Hämta ny data
+            Toast.makeText(getApplicationContext(), "Ny data hämtad!", Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private class FetchData extends AsyncTask<Void,Void,String>{
