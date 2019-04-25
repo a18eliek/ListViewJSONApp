@@ -1,5 +1,6 @@
 package com.example.brom.listviewjsonapp;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,14 +9,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,16 +21,16 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    public ArrayList<Mountain> list=new ArrayList<Mountain>();
+    public ArrayList<Mountain> list = new ArrayList<Mountain>();
+    public static final String MOUNTAIN_NAME = "MOUNTAIN_NAME", MOUNTAIN_LOCATION = "MOUNTAIN_LOCATION", MOUNTAIN_HEIGHT = "", MOUNTAIN_AUXDATA = "MOUNTAIN_AUXDATA";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         new FetchData().execute(); //Starta utplock av json-data
-
     }
 
     @Override
@@ -116,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
+
         @Override
         protected void onPostExecute(String o) {
             super.onPostExecute(o);
@@ -136,7 +135,8 @@ public class MainActivity extends AppCompatActivity {
 
                         Mountain m =  new Mountain(object.getString("name"),
                                 object.getString("location"),
-                                object.getInt("size")
+                                object.getInt("size"),
+                                object.getString("auxdata")
                         );
 
                         list.add(m);
@@ -146,26 +146,22 @@ public class MainActivity extends AppCompatActivity {
                 Log.e("brom","E:"+e.getMessage());
             }
 
+            //Skicka bergen till vår MountainAdapter
+            MountainAdapter mountainAdapter = new MountainAdapter(getApplicationContext(), list);
+            ListView listView = findViewById(R.id.my_listview);
+            listView.setAdapter(mountainAdapter);
 
-            //Skapar ett List objekt med alla berg. Se array mountainNames.
-            List<Mountain> listData = new ArrayList<Mountain>(list);
 
-            //Skapar en ArrayAdapter som ansluter till list_item_textview, my_item_textview samt med List objektet.
-            ArrayAdapter adapter = new ArrayAdapter(getApplicationContext(), R.layout.list_item_textview, R.id.my_item_textview, listData);
-
-            //Hittar layout elementet my_listview och skapar en objekt instans.
-            ListView myListView = (ListView)findViewById(R.id.my_listview);
-
-            //Ansluter ArrayAdaptern med ListView objektet.
-            myListView.setAdapter(adapter);
-
-            Log.e("brom","List: "+list);
-
-            //Lägger in en Toast vid klick på ett berg namn. Plats och namn visas.
-            myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            //Skicka all information vid klick till vår intent
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Toast.makeText(getApplicationContext(), list.get(position).info(), Toast.LENGTH_SHORT).show();
+                    Intent myIntent = new Intent(view.getContext(), MountainDetailsActivity.class);
+                    myIntent.putExtra(MOUNTAIN_NAME, list.get(position).toString());
+                    myIntent.putExtra(MOUNTAIN_LOCATION, list.get(position).getLocation());
+                    myIntent.putExtra(MOUNTAIN_HEIGHT, list.get(position).getHeight());
+                    myIntent.putExtra(MOUNTAIN_AUXDATA, list.get(position).getAuxdata());
+                    startActivity(myIntent);
                 }
             });
         }
